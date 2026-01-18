@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Events Portal - Secure</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body {
+            margin: 0; height: 100vh; display: flex; justify-content: center;
+            align-items: center; background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        .container {
+            background: #fff; width: 450px; padding: 30px; border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;
+        }
+        h1 { text-align: center; margin-bottom: 5px; color: #333; }
+        h2 { text-align: center; font-size: 14px; color: #777; margin-bottom: 20px; font-weight: normal; }
+        .form-group { margin-bottom: 12px; }
+        label { font-size: 14px; color: #555; margin-bottom: 5px; display: block; }
+        input, textarea { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; }
+        .verify-row { display: flex; gap: 5px; }
+        .verify-row input { flex: 1; }
+        .btn-verify { width: auto; font-size: 12px; padding: 0 10px; margin-top: 0; background: #34495e; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .verified { border: 2px solid #27ae60 !important; background-color: #f0fff4; }
+        button {
+            width: 100%; padding: 10px; background: #667eea; color: #fff;
+            border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px;
+        }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        button:hover:not(:disabled) { background: #5563c1; }
+        .btn-secondary { background: #6c757d; }
+        .btn-danger { background: #e74c3c; margin-top: 20px; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-more { width: auto; padding: 5px 15px; background: #764ba2; font-size: 13px; margin: 0; }
+        .btn-register-user { background: #27ae60; }
+        .event-list { list-style: none; padding: 0; margin-top: 20px; }
+        .event-item { 
+            background: #f8f9fa; padding: 15px; border-radius: 5px; 
+            margin-bottom: 10px; border-left: 5px solid #667eea;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .auth-box { border: 1px dashed #27ae60; padding: 10px; border-radius: 5px; margin-top: 10px; background: #f0fff4; }
+        .switch { text-align: center; margin-top: 15px; font-size: 13px; }
+        .switch a { color: #667eea; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="loginSection">
+        <h1>College Events</h1>
+        <h2>Organizer Login</h2>
+        <div class="form-group"><label>Event Name</label><input type="text" id="loginEvent"></div>
+        <div class="form-group"><label>Organizer Password</label><input type="password" id="loginPass"></div>
+        <button onclick="login()">Login as Organizer</button>
+        <button class="btn-secondary" onclick="showActiveEvents()">Explore Active Events</button>
+        <div class="switch">Want to host? <a onclick="showSignup()">Sign Up</a></div>
+    </div>
+
+    <div id="activeEventsSection" style="display:none;">
+        <h1>Upcoming Events</h1>
+        <ul id="eventListContainer" class="event-list"></ul>
+        <button class="btn-secondary" onclick="showLogin()">Back</button>
+    </div>
+
+    <div id="eventDetailsSection" style="display:none;">
+        <h1 id="detTitle">Event Title</h1>
+        <div id="visitorActions">
+            <button class="btn-register-user" onclick="showUserReg()">Register for this Event</button>
+        </div>
+        <div id="organizerActions" style="display:none;">
+            <p style="text-align: center; color: #666;">You are logged in as Organizer.</p>
+            <button class="btn-secondary" onclick="showLogin()">Logout</button>
+            <button class="btn-danger" onclick="deleteCurrentEvent()">Delete This Event Permanently</button>
+        </div>
+        <button id="backBtn" class="btn-secondary" onclick="showActiveEvents()">Back to List</button>
+    </div>
+
+    <div id="userRegSection" style="display:none;">
+        <h1>Join Event</h1>
+        <h2 id="regEventName" style="color:#27ae60;"></h2>
+        <div class="auth-box">
+            <div class="form-group"><label>Event Student Passcode</label><input type="password" id="studentAuthPass"></div>
+        </div>
+        <div class="form-group"><label>Full Name</label><input type="text" id="regName"></div>
+        <div class="form-group">
+            <label>College Email</label>
+            <div class="verify-row"><input type="email" id="regEmail"><button class="btn-verify" onclick="simulateOTP('regEmail')">Verify</button></div>
+        </div>
+        <div class="form-group">
+            <label>Phone Number</label>
+            <div class="verify-row"><input type="text" id="regPhone"><button class="btn-verify" onclick="simulateOTP('regPhone')">Verify</button></div>
+        </div>
+        <button id="regSubmitBtn" class="btn-register-user" disabled onclick="submitUserRegistration()">Confirm Registration</button>
+        <button class="btn-secondary" onclick="showActiveEvents()">Cancel</button>
+    </div>
+
+    <div id="signupSection" style="display:none;">
+        <h1>Create Event</h1>
+        <div class="form-group"><label>Event Name</label><input type="text" id="eventName"></div>
+        <div class="form-group"><label>Organizer Password</label><input type="password" id="eventPass"></div>
+        <div class="form-group" style="background: #eef2ff; padding: 10px; border-radius: 5px;">
+            <label>Set Student Passcode</label><input type="text" id="studentJoinPass">
+        </div>
+        <div class="form-group">
+            <label>Organizer Email</label>
+            <div class="verify-row"><input type="email" id="orgEmail"><button class="btn-verify" onclick="simulateOTP('orgEmail')">Verify</button></div>
+        </div>
+        <div class="form-group">
+            <label>Organizer Phone</label>
+            <div class="verify-row"><input type="text" id="orgPhone"><button class="btn-verify" onclick="simulateOTP('orgPhone')">Verify</button></div>
+        </div>
+        <button id="signupSubmitBtn" disabled onclick="signup()">Host Event</button>
+        <div class="switch"><a onclick="showLogin()">Back</a></div>
+    </div>
+</div>
+
+<script>
+    let selectedEvent = "";
+    let verifications = { regEmail: false, regPhone: false, orgEmail: false, orgPhone: false };
+
+    function hideAll() {
+        ["loginSection", "activeEventsSection", "eventDetailsSection", "userRegSection", "signupSection"]
+        .forEach(id => document.getElementById(id).style.display = "none");
+    }
+
+    function showLogin() { hideAll(); document.getElementById("loginSection").style.display = "block"; }
+    function showSignup() { hideAll(); document.getElementById("signupSection").style.display = "block"; }
+
+    function simulateOTP(fieldId) {
+        const input = document.getElementById(fieldId);
+        if (!input.value) { alert("Please enter a value first!"); return; }
+        const otp = Math.floor(1000 + Math.random() * 9000);
+        alert(`[SIMULATION] OTP sent to ${input.value}: ${otp}`);
+        const userOTP = prompt("Enter 4-digit OTP:");
+        if (userOTP == otp) {
+            alert("Verified!");
+            input.classList.add('verified');
+            input.readOnly = true;
+            verifications[fieldId] = true;
+            checkAllVerified();
+        } else { alert("Invalid OTP!"); }
+    }
+
+    function checkAllVerified() {
+        if (verifications.regEmail && verifications.regPhone) document.getElementById('regSubmitBtn').disabled = false;
+        if (verifications.orgEmail && verifications.orgPhone) document.getElementById('signupSubmitBtn').disabled = false;
+    }
+
+    async function showActiveEvents() {
+        hideAll();
+        const container = document.getElementById("eventListContainer");
+        container.innerHTML = "Loading...";
+        document.getElementById("activeEventsSection").style.display = "block";
+        const response = await fetch('/api/get_events');
+        const events = await response.json();
+        container.innerHTML = "";
+        Object.keys(events).forEach(name => {
+            const li = document.createElement("li");
+            li.className = "event-item";
+            li.innerHTML = `<strong>${name}</strong> <button class="btn-more" onclick="showMoreDetail('${name}', false)">More</button>`;
+            container.appendChild(li);
+        });
+    }
+
+    function showMoreDetail(name, loggedInAsOrg) {
+        hideAll();
+        selectedEvent = name;
+        document.getElementById("eventDetailsSection").style.display = "block";
+        document.getElementById("detTitle").innerText = name;
+        document.getElementById("visitorActions").style.display = loggedInAsOrg ? "none" : "block";
+        document.getElementById("organizerActions").style.display = loggedInAsOrg ? "block" : "none";
+    }
+
+    async function login() {
+        const name = document.getElementById("loginEvent").value;
+        const pass = document.getElementById("loginPass").value;
+        const response = await fetch('/api/get_events');
+        const events = await response.json();
+        const data = events[name];
+        if (data && data.password === pass) showMoreDetail(name, true);
+        else alert("Wrong credentials!");
+    }
+
+    async function deleteCurrentEvent() {
+        if (!confirm(`Are you sure you want to delete "${selectedEvent}"? This will remove all registrations and the folder permanently.`)) return;
+        
+        const response = await fetch('/api/delete_event', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ name: selectedEvent })
+        });
+
+        if (response.ok) {
+            alert("Event deleted successfully.");
+            showLogin();
+        } else {
+            alert("Error deleting event.");
+        }
+    }
+
+    function showUserReg() {
+        hideAll();
+        verifications.regEmail = false; verifications.regPhone = false;
+        document.getElementById('regSubmitBtn').disabled = true;
+        document.getElementById("userRegSection").style.display = "block";
+        document.getElementById("regEventName").innerText = selectedEvent;
+    }
+
+    async function submitUserRegistration() {
+        const studentInputPass = document.getElementById("studentAuthPass").value;
+        const responseEvents = await fetch('/api/get_events');
+        const events = await responseEvents.json();
+        const eventData = events[selectedEvent];
+        if (studentInputPass !== eventData.studentPass) { alert("❌ Incorrect Student Passcode!"); return; }
+
+        const regData = {
+            event: selectedEvent,
+            name: document.getElementById("regName").value,
+            email: document.getElementById("regEmail").value,
+            phone: document.getElementById("regPhone").value
+        };
+
+        const responseReg = await fetch('/api/register_user', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(regData)
+        });
+
+        const result = await responseReg.json();
+        if (responseReg.ok) {
+            alert(`✅ Success! Registered for ${selectedEvent}.`);
+            showActiveEvents();
+        } else {
+            alert(`❌ Error: ${result.message}`);
+        }
+    }
+
+    async function signup() {
+        const name = document.getElementById("eventName").value;
+        const data = {
+            name: name,
+            password: document.getElementById("eventPass").value,
+            studentPass: document.getElementById("studentJoinPass").value,
+            email: document.getElementById("orgEmail").value
+        };
+        await fetch('/api/save_event', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        alert("Event Created!");
+        showLogin();
+    }
+</script>
+</body>
+</html>
