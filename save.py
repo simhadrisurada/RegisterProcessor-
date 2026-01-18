@@ -5,11 +5,10 @@ import shutil
 
 app = Flask(__name__)
 
-# Constants
 DATA_FILE = 'events_db.json'
 EVENTS_DIR = 'hosted_events'
 
-# Ensure the storage directory exists
+
 if not os.path.exists(EVENTS_DIR):
     os.makedirs(EVENTS_DIR)
 
@@ -51,16 +50,16 @@ def delete_event():
     data = request.json
     event_name = data.get('name')
     
-    # 1. Remove from JSON database
+    
     db = load_data()
     if event_name in db:
         del db[event_name]
         save_data(db)
     
-    # 2. Delete physical folder
+    
     path = os.path.join(EVENTS_DIR, event_name)
     if os.path.exists(path):
-        shutil.rmtree(path) # Deletes folder and all .txt files inside
+        shutil.rmtree(path) 
         
     return jsonify({"status": "success"})
 
@@ -101,4 +100,5 @@ def get_events():
 
 if __name__ == '__main__':
     print("Server running at http://127.0.0.1:5000")
+
     app.run(debug=True, port=5000)
