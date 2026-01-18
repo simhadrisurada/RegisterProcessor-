@@ -1,58 +1,137 @@
-🎓 College Events Portal (Prototype)
-A lightweight, secure event management system designed for colleges. It allows organizers to create events and students to register only after verifying their identity via a simulated OTP and a student-specific passcode.
+# 🎓 College Events Portal (Prototype)
 
-📂 Project Structure
+A lightweight, secure event management system designed for college campuses. This prototype allows organizers to host events and students to register through a multi-layered verification process including a simulated OTP and event-specific passcodes.
+
+---
+
+## 📂 Project Structure
+
 To run the prototype, ensure your project folder is organized as follows:
 
-Plaintext
+```plaintext
 /your-project-folder
 │
 ├── app.py              # Flask Backend (API & Server logic)
-├── index.html          # Frontend (HTML/CSS/JS)
-├── events_db.json      # Database (Stores event names, passwords, and passcodes)
-└── /hosted_events      # Root directory for registration data
-    ├── /Event_Name_1   # Auto-generated folder for Event 1
-    │   ├── user1.txt   # Individual student registration data
-    │   └── user2.txt
-    └── /Event_Name_2   # Auto-generated folder for Event 2
-🛠 File Placement Technique
-The system uses a Hybrid Storage Strategy to ensure data is organized and human-readable without requiring a complex SQL database.
+├── index.html         # Frontend (HTML/CSS/JS)
+├── events_db.json    # Database (Stores event names, passwords, and passcodes)
+└── /hosted_events    # Root directory for registration data
+    ├── /Tech_Fest_2024   # Auto-generated folder for a specific event
+    │   ├── student1_at_email_com.txt  # Individual registration data
+    │   └── student2_at_email_com.txt
+    └── /Art_Expo        # Another auto-generated folder
+```
 
-1. The Metadata Layer (events_db.json)
-Purpose: Stores the "skeleton" of the event.
+---
 
-Contents: Event name, Organizer Password (for login), and Student Passcode (for registration).
+## 🛠 Technical Architecture & File Placement
 
-Technique: This file is updated every time a new event is hosted or deleted.
+The system utilizes a **Hybrid Storage Strategy**, combining JSON for metadata and a hierarchical directory system for registration data. This eliminates the need for a complex SQL database setup while remaining human-readable.
 
-2. The Physical Layer (/hosted_events)
-Purpose: Stores actual registration details.
+---
 
-Technique: * When an event is created, a physical folder is generated using the os.makedirs library in Python.
+### 1. 📄 Metadata Layer (`events_db.json`)
 
-When a student registers, their details (Name, Email, Phone) are saved into a unique .txt file inside that specific event folder.
+**Purpose:**
+Acts as the central registry for all events.
 
-The filename is sanitized (e.g., user_at_gmail_com.txt) to prevent filesystem errors.
+**Contents:**
 
-3. The Cleanup Mechanism
-Technique: When an organizer clicks Delete Event, the system uses shutil.rmtree. This doesn't just delete a database entry; it physically wipes the folder and all student text files from the hard drive, ensuring no "ghost" data remains.
+* Event names
+* Organizer passwords (hashed/plain)
+* Student registration passcodes
 
-🚀 How to Run
+**Mechanism:**
+This file is updated dynamically whenever an event is created or deleted.
+
+---
+
+### 2. 📁 Physical Layer (`/hosted_events`)
+
+**Purpose:**
+Stores detailed student registration records.
+
+**Mechanism:**
+
+* **Folder Generation:** When an event is created, a physical directory is generated using Python's `os.makedirs`.
+* **Individual Records:** Student details (Name, Email, Phone) are saved into unique `.txt` files within the event folder.
+* **Sanitization:** Filenames are sanitized (e.g., replacing `@` with `_at_`) to ensure cross-platform filesystem compatibility.
+
+---
+
+### 3. 🧹 Cleanup Mechanism
+
+**Mechanism:**
+When an organizer deletes an event, the system invokes `shutil.rmtree`.
+
+**Result:**
+This performs a recursive deletion of the event folder and all contained student records, ensuring no "ghost data" or orphaned files remain on the server.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+* Python 3.x
+* Pip (Python package manager)
+
+---
+
+### Installation
+
 Install Flask:
 
-Bash
+```bash
 pip install flask
-Prepare Files: Ensure app.py and index.html are in the same folder.
+```
 
-Start Server:
+**File Setup:**
+Place `app.py` and `index.html` in the same directory.
 
-Bash
+---
+
+### Running the App
+
+Start the server:
+
+```bash
 python app.py
-Access: Open http://127.0.0.1:5000 in your browser.
+```
 
-🔒 Security Features
-Simulated OTP: Prevents bot registrations.
+Launch:
+Open your browser and navigate to:
 
-Dual-Key Auth: Organizers have a private password, while students require a shared "Student Passcode" to join.
+```
+http://127.0.0.1:5000
+```
 
-Duplicate Prevention: The backend scans existing .txt files within a folder before allowing a new registration to prevent double-entry of emails or phone numbers.
+---
+
+## 🔒 Security & Validation Features
+
+* **Simulated OTP:** A verification step to prevent automated bot registrations.
+
+* **Dual-Key Authentication:**
+
+  * **Organizers:** Access management via a private password.
+  * **Students:** Require a shared *Student Passcode* provided by the organizer to join.
+
+* **Duplicate Prevention:**
+  The backend scans existing registration files within the specific event directory to block duplicate emails or phone numbers before writing to disk.
+
+---
+
+## 📌 Notes
+
+This prototype is designed for learning and small-scale campus use. For production deployment, consider adding:
+
+* HTTPS
+* Password hashing (e.g., `bcrypt`)
+* Database support (MySQL/PostgreSQL)
+* Rate limiting and logging
+
+---
+
+## 📄 License
+
+This project is open-source and av
